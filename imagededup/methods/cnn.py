@@ -41,7 +41,7 @@ class CNN:
     methods are provided to accomplish these tasks.
     """
 
-    def __init__(self, verbose: bool = True) -> None:
+    def __init__(self, verbose: bool = True, use_cuda=True) -> None:
         """
         Initialize a pytorch MobileNet model v3 that is sliced at the last convolutional layer.
         Set the batch size for pytorch dataloader to be 64 samples.
@@ -55,10 +55,10 @@ class CNN:
             __name__
         )  # The logger needs to be bound to the class, otherwise stderr also gets
         # directed to stdout (Don't know why that is the case)
-        self._build_model()
+        self._build_model(use_cuda)
         self.verbose = 1 if verbose is True else 0
 
-    def _build_model(self):
+    def _build_model(self, use_cuda):
         """
         Build MobileNet v3 model sliced at the last convolutional layer with global average pooling added and initialize the corresponding preprocessing transform. Also select gpu for encoding generation if it's available on the machine.
         """
@@ -66,7 +66,7 @@ class CNN:
         self.logger.info(
             'Initialized: MobileNet v3 pretrained on ImageNet dataset sliced at GAP layer'
         )
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if use_cuda and torch.cuda.is_available() else 'cpu')
         self.logger.info(f'Device set to {self.device} ..')
         
         self.model.to(self.device)
