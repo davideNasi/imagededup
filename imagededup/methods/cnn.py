@@ -247,6 +247,7 @@ class CNN:
             for file in files_list:
                 if not file.is_file():
                     raise ValueError('Please provide a valid list of files!' + " " + str(file) + " is not a valid file")
+            image_dir = ""
         # Folder case
         else:
             if isinstance(image_dir, str):
