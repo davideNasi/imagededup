@@ -118,8 +118,8 @@ class CNN:
         return unpacked_img_features_tensor
 
     def _get_cnn_features_batch(
-        self, image_dir: PurePath, recursive: Optional[bool] = False, num_workers: int = 0
-    ) -> Dict[str, np.ndarray]:
+        self, image_dir: PurePath, recursive: Optional[bool] = False, num_workers: int = 0,
+            files_list: Optional[List] = None) -> Dict[str, np.ndarray]:
         """
         Generate CNN encodings for all images in a given directory of images.
         Args:
@@ -136,7 +136,8 @@ class CNN:
             batch_size=self.batch_size,
             basenet_preprocess=self.apply_mobilenet_preprocess,
             recursive=recursive,
-            num_workers=num_workers
+            num_workers=num_workers,
+            files_list=files_list
         )
 
         feat_arr, all_filenames = [], []
@@ -220,7 +221,7 @@ class CNN:
         )
 
     def encode_images(
-        self, image_dir: Union[PurePath, str], recursive: Optional[bool] = False, num_enc_workers: int = 0
+        self, image_dir: Union[PurePath, str], files_list: Optional[List] = None, recursive: Optional[bool] = False, num_enc_workers: int = 0
     ) -> Dict:
         """Generate CNN encodings for all images in a given directory of images. Test.
 
@@ -238,17 +239,27 @@ class CNN:
             encoding_map = myencoder.encode_images(image_dir='path/to/image/directory')
             ```
         """
-        if isinstance(image_dir, str):
-            image_dir = Path(image_dir)
+        # List of files case
+        if files_list is not None:
+            if len(files_list) < 1:
+                raise ValueError('Please provide a valid list of files!')
+            files_list = [Path(i) if isinstance(i, str) else i for i in files_list]
+            for file in files_list:
+                if not file.is_file():
+                    raise ValueError('Please provide a valid list of files!' + " " + str(file) + " is not a valid file")
+        # Folder case
+        else:
+            if isinstance(image_dir, str):
+                image_dir = Path(image_dir)
 
-        if not image_dir.is_dir():
-            raise ValueError('Please provide a valid directory path!')
+            if not image_dir.is_dir():
+                raise ValueError('Please provide a valid directory path!')
         
         if num_enc_workers != 0 and sys.platform != 'linux':
             num_enc_workers = 0
             self.logger.info(f'Setting num_enc_workers to 0, CNN encoding generation parallelization support available on linux platform ..')
 
-        return self._get_cnn_features_batch(image_dir=image_dir, recursive=recursive, num_workers=num_enc_workers)
+        return self._get_cnn_features_batch(image_dir=image_dir, recursive=recursive, num_workers=num_enc_workers, files_list=files_list)
 
     @staticmethod
     def _check_threshold_bounds(thresh: float) -> None:

@@ -71,17 +71,22 @@ def parallelise(function: Callable, data: List, verbose: bool, num_workers: int)
     return results
 
 
-def generate_files(image_dir: Union[PurePath, str], recursive: bool) -> List:
-    if recursive:
-        glob_pattern = '**/*'
+def generate_files(image_dir: Union[PurePath, str], recursive: bool, files_list=None) -> List:
+    # List of files case
+    if files_list is not None:
+        return [i.absolute() for i in files_list]
+    # Folder case
     else:
-        glob_pattern = '*'
+        if recursive:
+            glob_pattern = '**/*'
+        else:
+            glob_pattern = '*'
 
-    return [
-        i.absolute()
-        for i in Path(image_dir).glob(glob_pattern)
-        if not (i.name.startswith('.') or i.is_dir())
-    ]
+        return [
+            i.absolute()
+            for i in Path(image_dir).glob(glob_pattern)
+            if not (i.name.startswith('.') or i.is_dir())
+        ]
 
 
 def generate_relative_names(image_dir: Union[PurePath, str], files: List) -> List:

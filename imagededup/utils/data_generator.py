@@ -16,12 +16,13 @@ class ImgDataset(Dataset):
         image_dir: PurePath,
         basenet_preprocess: Callable[[np.array], torch.tensor],
         recursive: Optional[bool],
+        files_list: Optional[List]
     ) -> None:
         self.image_dir = image_dir
         self.basenet_preprocess = basenet_preprocess
         self.recursive = recursive
         self.image_files = sorted(
-            generate_files(self.image_dir, self.recursive)
+            generate_files(self.image_dir, self.recursive, files_list=files_list)
         )  # ignore hidden files
 
     def __len__(self) -> int:
@@ -55,10 +56,11 @@ def img_dataloader(
     batch_size: int,
     basenet_preprocess: Callable[[np.array], torch.tensor],
     recursive: Optional[bool],
-    num_workers: int
+    num_workers: int,
+    files_list: Optional[List]
 ) -> DataLoader:
     img_dataset = ImgDataset(
-        image_dir=image_dir, basenet_preprocess=basenet_preprocess, recursive=recursive
+        image_dir=image_dir, basenet_preprocess=basenet_preprocess, recursive=recursive, files_list=files_list
     )
     return DataLoader(
         dataset=img_dataset, batch_size=batch_size, collate_fn=_collate_fn, num_workers=num_workers
