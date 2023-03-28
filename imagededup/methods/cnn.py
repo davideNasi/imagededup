@@ -143,9 +143,16 @@ class CNN:
         feat_arr, all_filenames = [], []
         bad_im_count = 0
 
+        # Slightly faster but use way more memory
+        # for ims, filenames, bad_images in self.dataloader:
+        #     arr = self.model(ims.to(self.device))
+        #     feat_arr.extend(arr)
+        #     all_filenames.extend(filenames)
+        #     if bad_images:
+        #         bad_im_count += 1
+
         for ims, filenames, bad_images in self.dataloader:
-            arr = self.model(ims.to(self.device))
-            feat_arr.extend(arr)
+            feat_arr.extend(self.model(ims.to(self.device)).detach().numpy())
             all_filenames.extend(filenames)
             if bad_images:
                 bad_im_count += 1
@@ -155,8 +162,8 @@ class CNN:
                 f'Found {bad_im_count} bad images, ignoring for encoding generation ..'
             )
             
-        feat_vec = torch.stack(feat_arr).squeeze()
-        feat_vec = feat_vec.detach().numpy() if self.device.type == 'cpu' else feat_vec.detach().cpu().numpy()
+        feat_vec = np.stack(feat_arr).squeeze()
+        #feat_vec = feat_vec.detach().numpy() if self.device.type == 'cpu' else feat_vec.detach().cpu().numpy()
         valid_image_files = [filename for filename in all_filenames if filename]
         self.logger.info('End: Image encoding generation')
 
